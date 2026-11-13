@@ -319,9 +319,11 @@ export class PatchOp {
                     }
                     // The target is a complex attribute - add specified values to it
                     else if (complex) {
-                        if (!property) Object.assign(target, value);
-                        else if (target[property] === undefined) target[property] = value;
-                        else Object.assign(target[property], value);
+                        const values = (Object(value) === value && !Array.isArray(value)
+                            ? Object.fromEntries(Object.entries(value).map(([key, val]) => [key.toLowerCase(), val])) : value);
+                        if (!property) Object.assign(target, values);
+                        else if (target[property] === undefined || values === null || typeof values !== "object" || Array.isArray(values)) target[property] = values;
+                        else Object.assign(target[property], values);
                     }
                     // The target is not a collection or a complex attribute - assign the value
                     else target[property] = value;
@@ -416,9 +418,19 @@ export class PatchOp {
      */
     #replace(index, path, value) {
         try {
-            // Call remove, then call add!
+            // Apply replacement semantics to each attribute when the resource itself is targeted
+            if (path === undefined && Object(value) === value && !Array.isArray(value)) {
+                for (let [key, val] of Object.entries(value)) this.#replace(index, key, val);
+                return;
+            }
+
+            // Clear replaced values, but preserve unspecified single-valued complex sub-attributes
             try {
-                if (path !== undefined) this.#remove(index, path);
+                if (path !== undefined) {
+                    const {complex, multiValued, property, targets} = this.#resolve(index, path, "remove");
+                    if (!property && targets.length > 1 && !Array.isArray(value)) value = targets.map(() => value);
+                    if (!complex || multiValued || !property) this.#remove(index, path);
+                }
             } catch {
                 // Do nothing, as we're immediately adding a new value, which will enforce actual attribute validity
             }

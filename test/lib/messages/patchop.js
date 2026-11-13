@@ -238,11 +238,18 @@ describe("SCIMMY.Messages.PatchOp", () => {
             });
             
             it(`should support namespaced attributes in '${op}' operations`, async () => {
-                const attributes = [new Attribute("string", "organization"), new Attribute("string", "test")];
+                const attributes = [new Attribute("string", "organization"), new Attribute("string", "test"),
+                    new Attribute("complex", "manager", {}, [new Attribute("string", "value"), new Attribute("string", "displayName")])];
                 const extension = new SchemaDefinition("Extension", TestSchema.definition.id.replace("Test", "Extension"), "", attributes);
-                const source = {id: "1234", userName: "asdf", [`${extension.id}:test`]: "value", ...(op === "add" ? {} : {[`${extension.id}:organization`]: "COMPANY1"})};
-                const target = {id: "1234", userName: "asdf", [extension.id]: {test: "value", ...(op === "remove" ? {} : {organization: "COMPANY2"})}};
+                const manager = {value: "old", displayName: "Manager"};
+                const source = {id: "1234", userName: "asdf", [`${extension.id}:test`]: "value", [`${extension.id}:manager`]: manager,
+                    ...(op === "add" ? {} : {[`${extension.id}:organization`]: "COMPANY1"})};
+                const target = {id: "1234", userName: "asdf", [extension.id]: {test: (op === "remove" ? "value" : "updated"),
+                    manager: {...manager, value: (op === "remove" ? "old" : "new")}, ...(op === "remove" ? {} : {organization: "COMPANY2"})}};
                 const Operations = [{op, path: `${extension.id}:organization`, ...(op === "remove" ? {} : {value: "COMPANY2"})}];
+                if (op !== "remove") Operations.push(
+                    {op, path: `${extension.id}:manager`, value: {value: "new"}},
+                    {op, path: extension.id, value: {test: "updated"}});
                 
                 try {
                     TestSchema.definition.extend(extension);
@@ -269,6 +276,14 @@ describe("SCIMMY.Messages.PatchOp", () => {
                         `Instance method 'apply' did not expect 'value' to be an object when 'path' was not specified in '${op}' operations`);
                 });
                 
+                it(`should reject non-complex values for an existing complex attribute in '${op}' operations`, async () => {
+                    const source = new TestSchema({userName: "asdf", name: {formatted: "Original"}});
+                    for (const value of [false, []]) {
+                        await assert.rejects(() => new PatchOp({...template, Operations: [{op, path: "name", value}]}).apply(source),
+                            {name: "SCIMError", status: 400, scimType: "invalidValue"});
+                    }
+                });
+
                 it(`should rethrow extensibility errors as SCIMErrors when 'path' points to nonexistent attribute in '${op}' operations`, async () => {
                     const Operations = [{op, path: "test", value: ""}];
                     const message = new PatchOp({...template, Operations});

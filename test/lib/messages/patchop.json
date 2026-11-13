@@ -17,10 +17,24 @@
         ]
       },
       {
-        "source": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Mr"}},
-        "target": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Mr", "formatted": "Test"}},
+        "source": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Mr", "formatted": "Original"}},
+        "target": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Dr", "formatted": "Original"}},
         "ops": [
-          {"op": "add", "path": "name", "value": {"formatted": "Test"}}
+          {"op": "add", "path": "name", "value": {"HONORIFICPREFIX": "Dr"}}
+        ]
+      },
+      {
+        "source": {"id": "1234", "userName": "asdf", "name": {"formatted": "Original"}},
+        "target": {"id": "1234", "userName": "asdf"},
+        "ops": [
+          {"op": "add", "path": "name", "value": null}
+        ]
+      },
+      {
+        "source": {"id": "1234", "userName": "asdf", "emails": [{"type": "work", "value": "old@example.com"}, {"type": "home", "value": "home@example.com"}]},
+        "target": {"id": "1234", "userName": "asdf", "emails": [{"type": "work", "value": "new@example.com"}, {"type": "home", "value": "home@example.com"}]},
+        "ops": [
+          {"op": "add", "path": "emails[type eq \"work\"]", "value": {"VALUE": "new@example.com"}}
         ]
       },
       {
@@ -98,10 +112,24 @@
         ]
       },
       {
-        "source": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Mr"}},
-        "target": {"id": "1234", "userName": "asdf", "name": {"formatted": "Test"}},
+        "source": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Mr", "formatted": "Original"}},
+        "target": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Dr", "formatted": "Original"}},
         "ops": [
-          {"op": "replace", "path": "name", "value": {"formatted": "Test"}}
+          {"op": "replace", "path": "name", "value": {"HONORIFICPREFIX": "Dr"}}
+        ]
+      },
+      {
+        "source": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Mr"}, "emails": [{"type": "home", "value": "old@example.com"}]},
+        "target": {"id": "1234", "userName": "asdf", "name": {"honorificPrefix": "Mr", "formatted": "Test"}, "emails": [{"type": "work", "value": "new@example.com"}], "nickName": "Test"},
+        "ops": [
+          {"op": "replace", "value": {"name": {"formatted": "Test"}, "emails": [{"type": "work", "value": "new@example.com"}], "nickName": "Test"}}
+        ]
+      },
+      {
+        "source": {"id": "1234", "userName": "asdf", "name": {"formatted": "Original"}},
+        "target": {"id": "1234", "userName": "asdf"},
+        "ops": [
+          {"op": "replace", "path": "name", "value": null}
         ]
       },
       {
@@ -119,10 +147,17 @@
         ]
       },
       {
-        "source": {"id": "1234", "userName": "asdf", "emails": [{"type": "work", "value": "asdf@dsaf.com"}]},
-        "target": {"id": "1234", "userName": "asdf", "emails": [{"type": "work", "value": "test@example.com"}]},
+        "source": {"id": "1234", "userName": "asdf", "emails": [{"type": "work", "value": "old@example.com"}, {"type": "home", "value": "home@example.com"}, {"type": "work", "value": "second@example.com"}]},
+        "target": {"id": "1234", "userName": "asdf", "emails": [{"type": "home", "value": "home@example.com"}, {"type": "work"}, {"type": "work"}]},
         "ops": [
-          {"op": "replace", "path": "emails[type eq \"work\"]", "value": {"type": "work", "value": "test@example.com"}}
+          {"op": "replace", "path": "emails[type eq \"work\"]", "value": {"type": "work"}}
+        ]
+      },
+      {
+        "source": {"id": "1234", "userName": "asdf", "emails": [{"type": "work", "value": "old@example.com"}, {"type": "home", "value": "home@example.com"}, {"type": "work", "value": "second@example.com"}]},
+        "target": {"id": "1234", "userName": "asdf", "emails": [{"type": "home", "value": "home@example.com"}, {"type": "work", "value": "first-new@example.com"}, {"type": "work", "value": "second-new@example.com"}]},
+        "ops": [
+          {"op": "replace", "path": "emails[type eq \"work\"]", "value": [{"type": "work", "value": "first-new@example.com"}, {"type": "work", "value": "second-new@example.com"}]}
         ]
       },
       {
